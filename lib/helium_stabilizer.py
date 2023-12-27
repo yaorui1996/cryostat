@@ -13,10 +13,14 @@ class HeliumStabilizer():
     def __init__(self, ip='192.168.30.130') -> None:
         self.__ip = ip
         self.__client = snap7.client.Client()
-        self.__client.connect(self.__ip, rack=rack, slot=slot)
+        self.reconnect()
 
     def close(self) -> None:
         self.__client.disconnect()
+    
+    def reconnect(self) -> None:
+        self.close()
+        self.__client.connect(self.__ip, rack=rack, slot=slot)
         
     def get_sv1(self) -> int:
         try:
@@ -24,6 +28,7 @@ class HeliumStabilizer():
                 'b', self.__client.read_area(Areas.MK, 0, 2, 1))[0]
             return 1 if M2 & 1 else 0
         except RuntimeError:
+            self.reconnect()
             return -1
 
     def get_sv2(self) -> int:
@@ -32,6 +37,7 @@ class HeliumStabilizer():
                 'b', self.__client.read_area(Areas.MK, 0, 2, 1))[0]
             return 1 if M2 >> 1 & 1 else 0
         except RuntimeError:
+            self.reconnect()
             return -1
 
     def get_pressure_1(self) -> float:
@@ -40,6 +46,7 @@ class HeliumStabilizer():
                 '>f', self.__client.read_area(Areas.MK, 0, 116, 4))[0]
             return round(MD116, 6)
         except RuntimeError:
+            self.reconnect()
             return -1
 
     def get_setpoint_a(self) -> float:
@@ -48,6 +55,7 @@ class HeliumStabilizer():
                 '>f', self.__client.read_area(Areas.MK, 0, 100, 4))[0]
             return round(MD100, 4)
         except RuntimeError:
+            self.reconnect()
             return -1
 
     def get_setpoint_b(self) -> float:
@@ -56,6 +64,7 @@ class HeliumStabilizer():
                 '>f', self.__client.read_area(Areas.MK, 0, 104, 4))[0]
             return round(MD104, 4)
         except RuntimeError:
+            self.reconnect()
             return -1
 
     def get_setpoint_c(self) -> float:
@@ -64,6 +73,7 @@ class HeliumStabilizer():
                 '>f', self.__client.read_area(Areas.MK, 0, 108, 4))[0]
             return round(MD108, 4)
         except RuntimeError:
+            self.reconnect()
             return -1
 
     def get_compare_period(self) -> int:
@@ -72,6 +82,7 @@ class HeliumStabilizer():
                 '>i', self.__client.read_area(Areas.MK, 0, 112, 4))[0]  # unit is ms
             return MD112
         except RuntimeError:
+            self.reconnect()
             return -1
 
     def get_manual_or_auto(self) -> int:
@@ -80,6 +91,7 @@ class HeliumStabilizer():
                 'b', self.__client.read_area(Areas.MK, 0, 3, 1))[0]
             return 1 if M3 == 5 else 0
         except RuntimeError:
+            self.reconnect()
             return -1
 
     def set_sv1(self, val: int) -> None:
