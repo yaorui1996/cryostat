@@ -15,7 +15,7 @@ def find_com_name(serial_number:str) -> str:
 
 class TC290:
     
-    def __init__(self, serial_number:str=None, com:str=None, baudrate=9600) -> None:
+    def __init__(self, serial_number:str=None, com:str=None, baudrate=115200) -> None:
         if serial_number:
             port = find_com_name(serial_number)
         elif com:
@@ -39,23 +39,37 @@ class TC290:
         A, B, C1, D1, C2, D2, C3, D3, C4, D4 = self.query('KRDG?').split(',')
         return A, B, C1, D1, C2, D2, C3, D3, C4, D4
         
-    def query_output_parameters(self) -> [str]: # type: ignore
+    def query_output_parameters(self, output_channel:int) -> [str]: # type: ignore
+        mode, input_channel, start_at_boot, _  = self.query(f'OUTMODE? {output_channel}').split(',')
+        return mode, input_channel, start_at_boot
+    
+    def configure_output_parameters(self, output_channel:int, mode:int, input_channel:int, start_at_boot:int) -> None:
         # output_channel: 1|2
         # mode: 0-5 corresponds to OFF|PID|ZONE|MANU|MONITOR|WARMUP
         # input_channel: 1-10 corresponds to A-D4
         # start_at_boot: 0|1
-        output_channel, mode, input_channel, start_at_boot  = self.query('OUTMODE? 1').split(',')
-        return output_channel, mode, input_channel, start_at_boot
+        self.query(f'OUTMODE {output_channel},{mode},{input_channel},{start_at_boot}')
         
-    def query_output_range(self) -> str:
-        # output_range: 0-3 corresponds to OFF|LOW|MED|HIGH
-        output_range  = self.query('RANGE? 1')
+    def query_output_range(self, output_channel:int) -> str:
+        output_range  = self.query(f'RANGE? {output_channel}')
         return output_range
-        
-    def query_temperature_control_pid_parameters(self) -> [str]: # type: ignore
-        p, i, d  = self.query('PID? 1').split(',')
-        return p, i, d
     
+    def configure_output_range(self, output_channel:int, output_range:int) -> None:
+        # output_channel: 1|2
+        # output_range: 0-3 corresponds to OFF|LOW|MED|HIGH
+        self.query(f'RANGE {output_channel},{output_range}')
+        
+    def query_temperature_control_pid_parameters(self, output_channel:int) -> [str]: # type: ignore
+        P, I, D  = self.query(f'PID? {output_channel}').split(',')
+        return P, I, D
+    
+    def configure_temperature_control_pid_parameters(self, output_channel:int, P:int, I:int, D:int) -> None:
+        # output_channel: 1|2
+        # P: 0.1-1000
+        # I: 0.1-1000
+        # D: 0-200
+        self.query(f'PID? {output_channel},{P},{I},{D}')
+
 
 if __name__ == '__main__':
     
@@ -63,13 +77,25 @@ if __name__ == '__main__':
     time.sleep(1)
     for i in range(1):
         t0 = time.time()
+        # print(inst.query_idn())
         # t1, t6, t2, _, t3, _, t4, _, t5, _ = inst.query_kelvin_temperature_value()
         # print(t1, t2, t3, t4, t5, t6)
-        # output_channel, mode, input_channel, start_at_boot = inst.query_output_parameters()
-        # print(output_channel, mode, input_channel, start_at_boot)
-        # output_range = inst.query_output_range()
-        # print(output_range)
-        p, i, d = inst.query_temperature_control_pid_parameters()
-        print(p, i, d)
+        # inst.configure_output_parameters(output_channel=1, mode=1, input_channel=1, start_at_boot=1)
+        # inst.configure_output_parameters(output_channel=2, mode=1, input_channel=5, start_at_boot=1)
+        # mode, input_channel, start_at_boot = inst.query_output_parameters_output_channel_1(output_channel=1)
+        # print(1, mode, input_channel, start_at_boot)
+        # mode, input_channel, start_at_boot = inst.query_output_parameters_output_channel_1(output_channel=2)
+        # print(2, mode, input_channel, start_at_boot)
+        # inst.configure_output_range(output_channel=1, output_range=0)
+        # output_range = inst.query_output_range(output_channel=1)
+        # print(1, output_range)
+        # inst.configure_output_range(output_channel=2, output_range=0)
+        # output_range = inst.query_output_range(output_channel=2)
+        # print(2, output_range)
+        # P, I, D = inst.query_temperature_control_pid_parameters(output_channel=1)
+        # print(1, P, I, D)
+        # P, I, D = inst.query_temperature_control_pid_parameters(output_channel=2)
+        # print(2, P, I, D)
+        print(inst.query(cmd='HTR? 1'))
         print(time.time() - t0)
     inst.close()
