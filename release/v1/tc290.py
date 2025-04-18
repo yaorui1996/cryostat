@@ -1,6 +1,10 @@
+import os
+import csv
 import time
 import serial
 import serial.tools.list_ports
+from datetime import datetime, timedelta
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 def find_com_name(serial_number:str) -> str:
@@ -53,6 +57,13 @@ class TC290:
         A, B, C1, D1, C2, D2, C3, D3, C4, D4 = self.query('KRDG?').split(',')
         return A, B, C1, D1, C2, D2, C3, D3, C4, D4
         
+    def query_control_loop_setpoint(self, output_channel:int) -> str:
+        set_value = self.query(f'SETP? {output_channel}')
+        return set_value
+    
+    def set_control_loop_setpoint(self, output_channel:int, set_value:int) -> None:
+        self.query(f'SETP {output_channel},{set_value}')
+        
     def query_output_parameters(self, output_channel:int) -> [str]: # type: ignore
         mode, input_channel, start_at_boot, _  = self.query(f'OUTMODE? {output_channel}').split(',')
         return mode, input_channel, start_at_boot
@@ -84,48 +95,62 @@ class TC290:
     
     def configure_heating_output_parameters(self, temperature_control_channel:int, ch2_output_mode:int, heating_resistance_value:int, maximum_current:int, maximum_custom_setting_current:int, display_mode:int) -> None:
         self.query(f'HTRSET {temperature_control_channel},{ch2_output_mode},{heating_resistance_value},{maximum_current},{maximum_custom_setting_current},{display_mode}')
-        
-    def query_control_loop_setpoint(self, output_channel:int) -> str:
-        set_value = self.query(f'SETP? {output_channel}')
-        return set_value
-    
-    def set_control_loop_setpoint(self, output_channel:int, set_value:int) -> None:
-        self.query(f'SETP {output_channel},{set_value}')
 
+
+def query(inst:TC290, data_file:str) -> None:
+    new_row = [datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')]
+    new_row += inst.query_kelvin_temperature_value()
+    for ch in [1, 2]:
+        new_row += [inst.query_control_loop_setpoint(output_channel=ch)]
+        new_row += inst.query_output_parameters(output_channel=ch)
+        new_row += [inst.query_output_range(output_channel=ch)]
+        new_row += inst.query_temperature_control_pid_parameters(output_channel=ch)
+        new_row += [inst.query_heating_output(temperature_control_channel=ch)]
+        new_row += inst.query_heating_output_parameters(temperature_control_channel=ch)
+    print(new_row)
+    with open(data_file, 'a', newline='', encoding='utf-8') as file:
+        csv.writer(file).writerow(new_row)
+    
 
 if __name__ == '__main__':
+    data_file = '_data_tc290.csv'
+    
+    columns = [
+        'Time',
+        'A', 'B', 'C1', 'D1', 'C2', 'D2', 'C3', 'D3', 'C4', 'D4',
+        'LP1_SET_VALUE',
+        'MODE', 'INPUT_CHANNEL', 'START_AT_BOOT',
+        'OUTPUT_RANGE',
+        'P', 'I', 'D',
+        'PERCENTAGE',
+        'CH2_OUTPUT_MODE', 'HEATING_RESISTANCE_VALUE', 'MAXIMUM_CURRENT', 'MAXIMUM_CUSTOM_SETTING_CURRENT', 'DISPLAY_MODE',
+        'LP2_SET_VALUE',
+        'MODE', 'INPUT_CHANNEL', 'START_AT_BOOT',
+        'OUTPUT_RANGE',
+        'P', 'I', 'D',
+        'PERCENTAGE',
+        'CH2_OUTPUT_MODE', 'HEATING_RESISTANCE_VALUE', 'MAXIMUM_CURRENT', 'MAXIMUM_CUSTOM_SETTING_CURRENT', 'DISPLAY_MODE',
+    ]
+
+    if not os.path.exists(data_file):
+        with open(data_file, 'w', newline='', encoding='utf-8') as file:
+            csv.writer(file).writerow(columns)
+    
     inst = TC290(com='COM6')
     time.sleep(1)
-    for i in range(1):
-        t0 = time.time()
-        # print(inst.query_idn())
-        # t1, t6, t2, _, t3, _, t4, _, t5, _ = inst.query_kelvin_temperature_value()
-        # print(t1, t2, t3, t4, t5, t6)
-        # inst.configure_output_parameters(output_channel=1, mode=1, input_channel=1, start_at_boot=1)
-        # inst.configure_output_parameters(output_channel=2, mode=1, input_channel=5, start_at_boot=1)
-        # mode, input_channel, start_at_boot = inst.query_output_parameters_output_channel_1(output_channel=1)
-        # print(1, mode, input_channel, start_at_boot)
-        # mode, input_channel, start_at_boot = inst.query_output_parameters_output_channel_1(output_channel=2)
-        # print(2, mode, input_channel, start_at_boot)
-        # inst.configure_output_range(output_channel=1, output_range=0)
-        # output_range = inst.query_output_range(output_channel=1)
-        # print(1, output_range)
-        # inst.configure_output_range(output_channel=2, output_range=0)
-        # output_range = inst.query_output_range(output_channel=2)
-        # print(2, output_range)
-        # P, I, D = inst.query_temperature_control_pid_parameters(output_channel=1)
-        # print(1, P, I, D)
-        # P, I, D = inst.query_temperature_control_pid_parameters(output_channel=2)
-        # print(2, P, I, D)
-        # percentage = inst.query_heating_output(temperature_control_channel=1)
-        # print(percentage)
-        # inst.configure_heating_output_parameters(temperature_control_channel=1, ch2_output_mode=0, heating_resistance_value=2, maximum_current=2, maximum_custom_setting_current=1, display_mode=2)
-        # inst.configure_heating_output_parameters(temperature_control_channel=2, ch2_output_mode=0, heating_resistance_value=2, maximum_current=2, maximum_custom_setting_current=1, display_mode=2)
-        # ch2_output_mode, heating_resistance_value, maximum_current, maximum_custom_setting_current, display_mode = inst.query_heating_output_parameters(temperature_control_channel=2)
-        # print(ch2_output_mode, heating_resistance_value, maximum_current, maximum_custom_setting_current, display_mode)
-        # inst.set_control_loop_setpoint(output_channel=1, set_value=300)
-        set_value = inst.query_control_loop_setpoint(output_channel=1)
-        print(set_value)
-        print(time.time() - t0)
-    inst.close()
+    # inst.configure_output_parameters(output_channel=1, mode=1, input_channel=1, start_at_boot=1)
+    # inst.configure_output_range(output_channel=1, output_range=0)
+    # inst.set_control_loop_setpoint(output_channel=1, set_value=300)
     
+    next_whole_second = (datetime.now() + timedelta(seconds=1)).replace(microsecond=0)
+    sched = BackgroundScheduler()
+    sched.add_job(query, 'interval', seconds=1, start_date=next_whole_second, args=[inst, data_file])
+    sched.start()
+    
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        sched.shutdown(wait=True)
+        inst.close()
+        print("\n检测到 Ctrl+C，程序退出。")
