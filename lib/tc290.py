@@ -14,7 +14,22 @@ def find_com_name(serial_number:str) -> str:
 
 
 class TC290:
-    
+    """
+    output_channel: 1|2
+    mode: 0-5 corresponds to OFF|PID|ZONE|MANU|MONITOR|WARMUP
+    input_channel: 1-10 corresponds to A-D4
+    start_at_boot: 0|1
+    output_range: 0-3 corresponds to OFF|LOW|MED|HIGH
+    P: 0.1-1000
+    I: 0.1-1000
+    D: 0-200
+    temperature_control_channel: 1|2
+    ch2_output_mode: 0-1 corresponds to Current|Voltage
+    heating_resistance_value: 1-2 corresponds to 25|50Ω
+    maximum_current: 0-4 corresponds to custom|0.707|1|1.414|2
+    maximum_custom_setting_current
+    display_mode: 1-2 corresponds to Current|Power
+    """
     def __init__(self, serial_number:str=None, com:str=None, baudrate=115200) -> None:
         if serial_number:
             port = find_com_name(serial_number)
@@ -44,10 +59,6 @@ class TC290:
         return mode, input_channel, start_at_boot
     
     def configure_output_parameters(self, output_channel:int, mode:int, input_channel:int, start_at_boot:int) -> None:
-        # output_channel: 1|2
-        # mode: 0-5 corresponds to OFF|PID|ZONE|MANU|MONITOR|WARMUP
-        # input_channel: 1-10 corresponds to A-D4
-        # start_at_boot: 0|1
         self.query(f'OUTMODE {output_channel},{mode},{input_channel},{start_at_boot}')
         
     def query_output_range(self, output_channel:int) -> str:
@@ -55,8 +66,6 @@ class TC290:
         return output_range
     
     def configure_output_range(self, output_channel:int, output_range:int) -> None:
-        # output_channel: 1|2
-        # output_range: 0-3 corresponds to OFF|LOW|MED|HIGH
         self.query(f'RANGE {output_channel},{output_range}')
         
     def query_temperature_control_pid_parameters(self, output_channel:int) -> [str]: # type: ignore
@@ -64,15 +73,21 @@ class TC290:
         return P, I, D
     
     def configure_temperature_control_pid_parameters(self, output_channel:int, P:int, I:int, D:int) -> None:
-        # output_channel: 1|2
-        # P: 0.1-1000
-        # I: 0.1-1000
-        # D: 0-200
         self.query(f'PID? {output_channel},{P},{I},{D}')
+
+    def query_heating_output(self, temperature_control_channel:int) -> str:
+        percentage  = self.query(f'HTR? {temperature_control_channel}')
+        return percentage
+        
+    def query_heating_output_parameters(self, temperature_control_channel:int) -> [str]: # type: ignore
+        ch2_output_mode, heating_resistance_value, maximum_current, maximum_custom_setting_current, display_mode = self.query(f'HTRSET? {temperature_control_channel}').split(',')
+        return ch2_output_mode, heating_resistance_value, maximum_current, maximum_custom_setting_current, display_mode
+    
+    def configure_heating_output_parameters(self, temperature_control_channel:int, ch2_output_mode:int, heating_resistance_value:int, maximum_current:int, maximum_custom_setting_current:int, display_mode:int) -> None:
+        self.query(f'HTRSET {temperature_control_channel},{ch2_output_mode},{heating_resistance_value},{maximum_current},{maximum_custom_setting_current},{display_mode}')
 
 
 if __name__ == '__main__':
-    
     inst = TC290(com='COM6')
     time.sleep(1)
     for i in range(1):
@@ -96,6 +111,11 @@ if __name__ == '__main__':
         # print(1, P, I, D)
         # P, I, D = inst.query_temperature_control_pid_parameters(output_channel=2)
         # print(2, P, I, D)
-        print(inst.query(cmd='HTR? 1'))
+        # percentage = inst.query_heating_output(temperature_control_channel=1)
+        # print(percentage)
+        inst.configure_heating_output_parameters(temperature_control_channel=1, ch2_output_mode=0, heating_resistance_value=2, maximum_current=2, maximum_custom_setting_current=1, display_mode=2)
+        ch2_output_mode, heating_resistance_value, maximum_current, maximum_custom_setting_current, display_mode = inst.query_heating_output_parameters(temperature_control_channel=1)
+        print(ch2_output_mode, heating_resistance_value, maximum_current, maximum_custom_setting_current, display_mode)
         print(time.time() - t0)
     inst.close()
+    
