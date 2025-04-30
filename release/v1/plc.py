@@ -144,12 +144,15 @@ if __name__ == '__main__':
             csv.writer(file).writerow(columns)
     
     inst = PLC(ip='192.168.21.10')
+    
+    """参数设置区域开始"""
     inst.set_setpoint_a(300)
-    inst.set_setpoint_b(0.98)
-    inst.set_setpoint_c(1.00)
-    inst.set_setpoint_d(1.02)
+    inst.set_setpoint_b(1.01)
+    inst.set_setpoint_c(1.02)
+    inst.set_setpoint_d(1.03)
     inst.set_t1(299)
     inst.set_manual_or_auto(1)
+    """参数设置区域结束"""
 
     next_whole_second = (datetime.now() + timedelta(seconds=1)).replace(microsecond=0)
     sched = BackgroundScheduler()

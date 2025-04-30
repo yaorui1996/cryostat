@@ -138,9 +138,12 @@ if __name__ == '__main__':
     
     inst = TC290(com='COM6')
     time.sleep(1)
+    
+    """参数设置区域开始"""
     # inst.configure_output_parameters(output_channel=1, mode=1, input_channel=1, start_at_boot=1)
     # inst.configure_output_range(output_channel=1, output_range=0)
     # inst.set_control_loop_setpoint(output_channel=1, set_value=300)
+    """参数设置区域结束"""
     
     next_whole_second = (datetime.now() + timedelta(seconds=1)).replace(microsecond=0)
     sched = BackgroundScheduler()
