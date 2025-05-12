@@ -20,7 +20,7 @@ class TC290:
     """
     output_channel: 1|2
     mode: 0-5 corresponds to OFF|PID|ZONE|MANU|MONITOR|WARMUP
-    input_channel: 1-10 corresponds to A-D4
+    input_channel: 1-10 corresponds to A, B, C1, D1, C2, D2, C3, D3, C4, D4
     start_at_boot: 0|1
     output_range: 0-3 corresponds to OFF|LOW|MED|HIGH
     P: 0.1-1000
@@ -131,18 +131,22 @@ if __name__ == '__main__':
         'PERCENTAGE',
         'CH2_OUTPUT_MODE', 'HEATING_RESISTANCE_VALUE', 'MAXIMUM_CURRENT', 'MAXIMUM_CUSTOM_SETTING_CURRENT', 'DISPLAY_MODE',
     ]
+    """
+    PERCENTAGE = I_OUT ^ 2 / ( I_MAX ^ 2 * FACTOR_OUTPUT_RANGE)
+    FACTOR_OUTPUT_RANGE = 1. / 100, OUTPUT_RANGE = LOW
+    """
 
     if not os.path.exists(data_file):
         with open(data_file, 'w', newline='', encoding='utf-8') as file:
             csv.writer(file).writerow(columns)
     
-    inst = TC290(com='COM6')
+    inst = TC290(serial_number='18C5783885D5E711B8144121206CCA29')
     time.sleep(1)
     
     """参数设置区域开始"""
-    # inst.configure_output_parameters(output_channel=1, mode=1, input_channel=1, start_at_boot=1)
-    # inst.configure_output_range(output_channel=1, output_range=0)
-    # inst.set_control_loop_setpoint(output_channel=1, set_value=300)
+    inst.configure_output_parameters(output_channel=2, mode=1, input_channel=5, start_at_boot=1)
+    inst.configure_output_range(output_channel=2, output_range=1)
+    inst.set_control_loop_setpoint(output_channel=2, set_value=5)
     """参数设置区域结束"""
     
     next_whole_second = (datetime.now() + timedelta(seconds=1)).replace(microsecond=0)

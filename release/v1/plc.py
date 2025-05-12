@@ -3,7 +3,7 @@ import os
 import time
 import snap7
 import struct
-from snap7.util import Areas
+from snap7.type import Areas
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 
