@@ -1,7 +1,17 @@
-from matplotlib import pyplot as plt
-import numpy as np
-import serial
 import time
+import serial
+import serial.tools.list_ports
+import numpy as np
+from matplotlib import pyplot as plt
+
+
+def find_com_name(serial_number:str) -> str:
+    comports_dict = {comport.name:comport.serial_number for comport in serial.tools.list_ports.comports()}
+    names = [k for k,v in comports_dict.items() if v == serial_number]
+    if names:
+        return names[0]
+    else:
+        raise
 
 
 def notch_search(frq: list[float], s11: list[float]) -> (float, float, float, float, float, float):
@@ -20,13 +30,16 @@ def notch_search(frq: list[float], s11: list[float]) -> (float, float, float, fl
 
 class DeepVNA:
     
-    def __init__(self, port = 'COM5') -> None:
-        self.__ser = serial.Serial(port = port, baudrate = 115200, timeout=0)
+    def __init__(self,  serial_number:str = None, com:str = None, baudrate = 115200) -> None:
+        if serial_number:
+            port = find_com_name(serial_number)
+        elif com:
+            port = com
+        else:
+            raise
+        self.__ser = serial.Serial(port=port, baudrate=baudrate)
+        self.__ser.timeout = 0
         self.init_dev()
-        # self.query('save 0')
-        # self.query('recall 0')
-        # self.query('pause')
-        # self.query('resume')
     
     def close(self) -> None:
         self.__ser.close()
@@ -67,8 +80,8 @@ class DeepVNA:
         
 
 if __name__ == '__main__':
-    deepvna = DeepVNA('COM3')
-    deepvna.sweep(41.96e6, 2e6)
+    deepvna = DeepVNA(serial_number='6561E2CB0E32')
+    deepvna.sweep(400e6, 200e6)
     frq = deepvna.frequencies()
     s11 = [20 * np.log10(np.linalg.norm(x)) for x in deepvna.data0()]
     deepvna.close()
@@ -86,3 +99,4 @@ if __name__ == '__main__':
     plt.xlabel('Frq (MHz)')
     plt.ylabel('S11 (dB)')
     plt.show()
+    
