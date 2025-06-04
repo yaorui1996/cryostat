@@ -45,6 +45,7 @@ class DeepVNA:
         self.__ser.close()
         
     def query(self, cmd: str) -> str:
+        t0 = time.time()
         self.__ser.write(f'{cmd}\r'.encode())
         time.sleep(0.001)
         recv = self.__ser.read(1024).decode('utf-8')
@@ -52,6 +53,7 @@ class DeepVNA:
             time.sleep(0.01)
             recv += self.__ser.read(1024).decode('utf-8')
         res = recv.replace(f'{cmd}\r\n', '').replace('ch> ', '')
+        print('query cost: ', time.time() - t0)
         return res
     
     def init_dev(self) -> None:
@@ -81,9 +83,13 @@ class DeepVNA:
 
 if __name__ == '__main__':
     deepvna = DeepVNA(serial_number='6561E2CB0E32')
-    deepvna.sweep(400e6, 200e6)
+    t0 = time.time()
+    deepvna.sweep(24.8e6, 2e6)
+    print(time.time() - t0)
     frq = deepvna.frequencies()
+    print(time.time() - t0)
     s11 = [20 * np.log10(np.linalg.norm(x)) for x in deepvna.data0()]
+    print(time.time() - t0)
     deepvna.close()
     
     center, s11_center, center_left_3db, s11_left_3db, center_right_3db, s11_right_3db, frq_s11_max, s11_max = notch_search(frq, s11)

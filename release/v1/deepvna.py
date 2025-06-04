@@ -3,6 +3,7 @@ import os
 import time
 import serial
 import serial.tools.list_ports
+import numpy as np
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -39,8 +40,7 @@ class DeepVNA:
             port = com
         else:
             raise
-        self.__ser = serial.Serial(port=port, baudrate=baudrate)
-        self.__ser.timeout = 0
+        self.__ser = serial.Serial(port=port, baudrate=baudrate, timeout=0)
         self.init_dev()
     
     def close(self) -> None:
@@ -67,7 +67,7 @@ class DeepVNA:
         stop = center + span / 2
         self.query(f'sweep {start} {stop} {points}')
     
-    def sweep_once(self, sampling_time: float = 2) -> None:
+    def sweep_once(self, sampling_time: float = 2.) -> None:
         self.query('resume')
         time.sleep(sampling_time)
         self.query('pause')
@@ -98,7 +98,7 @@ def query(inst: DeepVNA, data_file: str) -> None:
     print(new_row)
     with open(data_file, 'a', newline='', encoding='utf-8') as file:
         csv.writer(file).writerow(new_row)
- 
+
 
 if __name__ == '__main__':
     data_file = '_data_deepvna.csv'
@@ -116,12 +116,12 @@ if __name__ == '__main__':
     inst = DeepVNA(serial_number='6561E2CB0E32')
     
     """参数设置区域开始"""
-    inst.sweep(center=400e6, span=200e6)
+    inst.sweep(center=24.8e6, span=2e6)
     """参数设置区域结束"""
     
     next_whole_second = (datetime.now() + timedelta(seconds=1)).replace(microsecond=0)
     sched = BackgroundScheduler()
-    sched.add_job(query, 'interval', seconds=1, start_date=next_whole_second, args=[inst, data_file])
+    sched.add_job(query, 'interval', seconds=5, start_date=next_whole_second, args=[inst, data_file])
     sched.start()
     
     try:
