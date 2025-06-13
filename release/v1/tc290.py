@@ -9,6 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 def find_com_name(serial_number:str) -> str:
     comports_dict = {comport.name:comport.serial_number for comport in serial.tools.list_ports.comports()}
+    print(comports_dict)
     names = [k for k,v in comports_dict.items() if v == serial_number]
     if names:
         return names[0]
@@ -65,7 +66,7 @@ class TC290:
         self.query(f'SETP {output_channel},{set_value}')
         
     def query_output_parameters(self, output_channel:int) -> [str]: # type: ignore
-        mode, input_channel, start_at_boot, _  = self.query(f'OUTMODE? {output_channel}').split(',')
+        mode, input_channel, start_at_boot  = self.query(f'OUTMODE? {output_channel}').split(',')
         return mode, input_channel, start_at_boot
     
     def configure_output_parameters(self, output_channel:int, mode:int, input_channel:int, start_at_boot:int) -> None:
@@ -83,7 +84,7 @@ class TC290:
         return P, I, D
     
     def configure_temperature_control_pid_parameters(self, output_channel:int, P:int, I:int, D:int) -> None:
-        self.query(f'PID? {output_channel},{P},{I},{D}')
+        self.query(f'PID {output_channel},{P},{I},{D}')
 
     def query_heating_output(self, temperature_control_channel:int) -> str:
         percentage  = self.query(f'HTR? {temperature_control_channel}')
@@ -140,13 +141,13 @@ if __name__ == '__main__':
         with open(data_file, 'w', newline='', encoding='utf-8') as file:
             csv.writer(file).writerow(columns)
     
-    inst = TC290(serial_number='18C5783885D5E711B8144121206CCA29')
+    inst = TC290(serial_number='5A2A003875')
     time.sleep(1)
     
     """参数设置区域开始"""
-    inst.configure_output_parameters(output_channel=1, mode=1, input_channel=5, start_at_boot=1)
-    inst.configure_output_range(output_channel=1, output_range=1)
-    inst.set_control_loop_setpoint(output_channel=1, set_value=5)
+    inst.configure_output_parameters(output_channel=2, mode=1, input_channel=5, start_at_boot=1)
+    inst.configure_output_range(output_channel=2, output_range=1)
+    inst.set_control_loop_setpoint(output_channel=2, set_value=5)
     """参数设置区域结束"""
     
     next_whole_second = (datetime.now() + timedelta(seconds=1)).replace(microsecond=0)

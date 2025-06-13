@@ -54,7 +54,7 @@ class TC290:
         return A, B, C1, D1, C2, D2, C3, D3, C4, D4
         
     def query_output_parameters(self, output_channel:int) -> [str]: # type: ignore
-        mode, input_channel, start_at_boot, _  = self.query(f'OUTMODE? {output_channel}').split(',')
+        mode, input_channel, start_at_boot  = self.query(f'OUTMODE? {output_channel}').split(',')
         return mode, input_channel, start_at_boot
     
     def configure_output_parameters(self, output_channel:int, mode:int, input_channel:int, start_at_boot:int) -> None:
@@ -72,7 +72,7 @@ class TC290:
         return P, I, D
     
     def configure_temperature_control_pid_parameters(self, output_channel:int, P:int, I:int, D:int) -> None:
-        self.query(f'PID? {output_channel},{P},{I},{D}')
+        self.query(f'PID {output_channel},{P},{I},{D}')
 
     def query_heating_output(self, temperature_control_channel:int) -> str:
         percentage  = self.query(f'HTR? {temperature_control_channel}')
@@ -94,7 +94,7 @@ class TC290:
 
 
 if __name__ == '__main__':
-    inst = TC290(com='COM6')
+    inst = TC290(com='COM9')
     time.sleep(1)
     for i in range(1):
         t0 = time.time()
@@ -103,9 +103,9 @@ if __name__ == '__main__':
         # print(t1, t2, t3, t4, t5, t6)
         # inst.configure_output_parameters(output_channel=1, mode=1, input_channel=1, start_at_boot=1)
         # inst.configure_output_parameters(output_channel=2, mode=1, input_channel=5, start_at_boot=1)
-        # mode, input_channel, start_at_boot = inst.query_output_parameters_output_channel_1(output_channel=1)
+        # mode, input_channel, start_at_boot = inst.query_output_parameters(output_channel=1)
         # print(1, mode, input_channel, start_at_boot)
-        # mode, input_channel, start_at_boot = inst.query_output_parameters_output_channel_1(output_channel=2)
+        # mode, input_channel, start_at_boot = inst.query_output_parameters(output_channel=2)
         # print(2, mode, input_channel, start_at_boot)
         # inst.configure_output_range(output_channel=1, output_range=0)
         # output_range = inst.query_output_range(output_channel=1)
@@ -113,6 +113,8 @@ if __name__ == '__main__':
         # inst.configure_output_range(output_channel=2, output_range=0)
         # output_range = inst.query_output_range(output_channel=2)
         # print(2, output_range)
+        # inst.configure_temperature_control_pid_parameters(output_channel=1, P=50, I=20, D=0)
+        # inst.configure_temperature_control_pid_parameters(output_channel=2, P=50, I=20, D=0)
         # P, I, D = inst.query_temperature_control_pid_parameters(output_channel=1)
         # print(1, P, I, D)
         # P, I, D = inst.query_temperature_control_pid_parameters(output_channel=2)
@@ -124,8 +126,8 @@ if __name__ == '__main__':
         # ch2_output_mode, heating_resistance_value, maximum_current, maximum_custom_setting_current, display_mode = inst.query_heating_output_parameters(temperature_control_channel=2)
         # print(ch2_output_mode, heating_resistance_value, maximum_current, maximum_custom_setting_current, display_mode)
         # inst.set_control_loop_setpoint(output_channel=1, set_value=300)
-        set_value = inst.query_control_loop_setpoint(output_channel=1)
-        print(set_value)
+        # set_value = inst.query_control_loop_setpoint(output_channel=1)
+        # print(set_value)
         print(time.time() - t0)
     inst.close()
     

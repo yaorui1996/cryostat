@@ -116,7 +116,7 @@ if __name__ == '__main__':
     inst = DeepVNA(serial_number='6561E2CB0E32')
     
     """参数设置区域开始"""
-    inst.sweep(center=24.8e6, span=2e6)
+    inst.sweep(center=24.96e6, span=1e6)
     """参数设置区域结束"""
     
     next_whole_second = (datetime.now() + timedelta(seconds=1)).replace(microsecond=0)
