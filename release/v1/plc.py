@@ -147,9 +147,9 @@ if __name__ == '__main__':
     
     """参数设置区域开始"""
     inst.set_setpoint_a(300)
-    inst.set_setpoint_b(1.01)
-    inst.set_setpoint_c(1.02)
-    inst.set_setpoint_d(1.03)
+    inst.set_setpoint_b(1.00)
+    inst.set_setpoint_c(1.01)
+    inst.set_setpoint_d(1.02)
     inst.set_t1(299)
     inst.set_manual_or_auto(1)
     """参数设置区域结束"""

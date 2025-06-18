@@ -72,6 +72,12 @@ if __name__ == '__main__':
     
     inst = XGS600(serial_number='AYDPE11BS13')
     
+    """参数设置区域开始"""
+    # inst.set_emission_off()
+    # inst.set_fil_1_emission_on()
+    # exit()
+    """参数设置区域结束"""
+    
     next_whole_second = (datetime.now() + timedelta(seconds=1)).replace(microsecond=0)
     sched = BackgroundScheduler()
     sched.add_job(query, 'interval', seconds=1, start_date=next_whole_second, args=[inst, data_file])

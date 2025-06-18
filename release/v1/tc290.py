@@ -146,7 +146,7 @@ if __name__ == '__main__':
     
     """参数设置区域开始"""
     inst.configure_output_parameters(output_channel=2, mode=1, input_channel=5, start_at_boot=1)
-    inst.configure_output_range(output_channel=2, output_range=1)
+    inst.configure_output_range(output_channel=2, output_range=0)
     inst.set_control_loop_setpoint(output_channel=2, set_value=5)
     """参数设置区域结束"""
     
