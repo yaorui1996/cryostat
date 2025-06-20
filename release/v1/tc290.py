@@ -66,7 +66,7 @@ class TC290:
         self.query(f'SETP {output_channel},{set_value}')
         
     def query_output_parameters(self, output_channel:int) -> [str]: # type: ignore
-        mode, input_channel, start_at_boot  = self.query(f'OUTMODE? {output_channel}').split(',')
+        mode, input_channel, start_at_boot, _  = self.query(f'OUTMODE? {output_channel}').split(',')
         return mode, input_channel, start_at_boot
     
     def configure_output_parameters(self, output_channel:int, mode:int, input_channel:int, start_at_boot:int) -> None:
@@ -141,12 +141,12 @@ if __name__ == '__main__':
         with open(data_file, 'w', newline='', encoding='utf-8') as file:
             csv.writer(file).writerow(columns)
     
-    inst = TC290(serial_number='5A2A003875')
+    inst = TC290(serial_number='18C5783885D5E711B8144121206CCA29')
     time.sleep(1)
     
     """参数设置区域开始"""
     inst.configure_output_parameters(output_channel=2, mode=1, input_channel=5, start_at_boot=1)
-    inst.configure_output_range(output_channel=2, output_range=0)
+    inst.configure_output_range(output_channel=2, output_range=1)
     inst.set_control_loop_setpoint(output_channel=2, set_value=5)
     """参数设置区域结束"""
     

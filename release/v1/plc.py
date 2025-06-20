@@ -146,6 +146,10 @@ if __name__ == '__main__':
     inst = PLC(ip='192.168.21.10')
     
     """参数设置区域开始"""
+    # inst.set_manual_or_auto(0)
+    # inst.set_sv1(1)
+    # inst.set_sv1(2)
+    # exit()
     inst.set_setpoint_a(300)
     inst.set_setpoint_b(1.00)
     inst.set_setpoint_c(1.01)
